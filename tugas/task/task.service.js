@@ -1,13 +1,13 @@
 const Busboy = require('busboy');
 const url = require('url');
 const { Writable } = require('stream');
-const { register, list, remove, ERROR_WORKER_NOT_FOUND } = require('./worker');
-const { saveFile } = require('../lib/storage');
+const { add, list, remove, ERROR_WORKER_NOT_FOUND } = require('./task');
+// const { saveFile } = require('../lib/storage');
 // eslint-disable-next-line no-unused-vars
 const { IncomingMessage, ServerResponse } = require('http');
 
 /**
- * service to register new worker
+ * service to add new task
  * @param {IncomingMessage} req
  * @param {ServerResponse} res
  */
@@ -34,22 +34,25 @@ function addService(req, res) {
     switch (fieldname) {
       case 'filename':
         try {
-          data.photo = await saveFile(file, mimetype);
+          //   data.photo = await saveFile(file, mimetype);
+          data.filename = 'ini-file-dummy.jpeg';
         } catch (err) {
           abort();
         }
         if (finished) {
           try {
-            const worker = await register(data);
+            const task = await add(data);
             res.setHeader('content-type', 'application/json');
-            res.write(JSON.stringify(worker));
+            res.write(JSON.stringify(task));
           } catch (err) {
             if (err === 'Data task kurang lengkap') {
               res.statusCode = 401;
             } else {
               res.statusCode = 500;
+              console.log('test 500');
             }
             res.write(err);
+            console.log('test err');
           }
           res.end();
         }
@@ -66,7 +69,7 @@ function addService(req, res) {
   });
 
   busboy.on('field', (fieldname, val) => {
-    if (['job', 'desc'].includes(fieldname)) {
+    if (['job', 'desc', 'filename'].includes(fieldname)) {
       data[fieldname] = val;
     }
   });
@@ -82,15 +85,15 @@ function addService(req, res) {
 }
 
 /**
- * service to get list of workers
+ * service to get list of tasks
  * @param {IncomingMessage} req
  * @param {ServerResponse} res
  */
-async function listSvc(req, res) {
+async function listService(req, res) {
   try {
-    const workers = await list();
+    const task = await list();
     res.setHeader('content-type', 'application/json');
-    res.write(JSON.stringify(workers));
+    res.write(JSON.stringify(task));
     res.end();
   } catch (err) {
     res.statusCode = 500;
@@ -100,7 +103,7 @@ async function listSvc(req, res) {
 }
 
 /**
- * service to remove a worker by it's id
+ * service to remove a task by it's id
  * @param {IncomingMessage} req
  * @param {ServerResponse} res
  */
@@ -114,10 +117,10 @@ async function removeSvc(req, res) {
     return;
   }
   try {
-    const worker = await remove(id);
+    const task = await remove(id);
     res.setHeader('content-type', 'application/json');
     res.statusCode = 200;
-    res.write(JSON.stringify(worker));
+    res.write(JSON.stringify(task));
     res.end();
   } catch (err) {
     if (err === ERROR_WORKER_NOT_FOUND) {
@@ -133,7 +136,7 @@ async function removeSvc(req, res) {
 }
 
 module.exports = {
-  listSvc,
-  registerSvc,
+  listService,
+  addService,
   removeSvc,
 };

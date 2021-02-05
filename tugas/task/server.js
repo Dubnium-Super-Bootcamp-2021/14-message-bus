@@ -8,7 +8,7 @@ let server;
 /**
  * run server
  */
-function run() {
+async function run() {
   server = createServer((req, res) => {
     /**
      * write http response message
@@ -26,8 +26,9 @@ function run() {
       const uri = url.parse(req.url, true);
       switch (uri.pathname) {
         case '/add':
+          console.log('/add');
           if (req.method === 'POST') {
-            return addService(req, res);
+            return await addService(req, res);
           } else {
             respond(404);
           }

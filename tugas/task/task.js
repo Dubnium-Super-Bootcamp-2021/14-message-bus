@@ -1,5 +1,5 @@
 const { getConnection } = require('typeorm');
-const { Worker } = require('./worker.model');
+const { Task } = require('./task.model');
 
 const ERROR_WORKER_NOT_FOUND = 'pekerja tidak ditemukan';
 
@@ -23,23 +23,23 @@ async function add(data) {
   if (
     !data.job ||
     !data.desc ||
-    !data.done ||
-    !data.filename ||
-    !data.addedAt
+    // !data.done ||
+    !data.filename
+    // !data.addedAt
   ) {
     throw 'Data task kurang lengkap';
   }
-  const workerRepo = getConnection().getRepository('Worker');
-  const worker = new Worker(
+  const taskRepo = getConnection().getRepository('Task');
+  const task = new Task(
     null,
-    data.name,
-    parseInt(data.age, 10),
-    data.bio,
-    data.address,
-    data.photo
+    data.job,
+    data.desc,
+    // data.done,
+    data.filename
+    // data.addedAt
   );
-  await workerRepo.save(worker);
-  return worker;
+  await taskRepo.save(task);
+  return task;
 }
 
 /**
@@ -47,8 +47,8 @@ async function add(data) {
  * @returns {Promise<Worker[]>} list of registered workers
  */
 function list() {
-  const workerRepo = getConnection().getRepository('Worker');
-  return workerRepo.find();
+  const taskRepo = getConnection().getRepository('Task');
+  return taskRepo.find();
 }
 
 /**
@@ -67,9 +67,8 @@ async function remove(id) {
 }
 
 module.exports = {
-  register,
+  add,
   list,
   remove,
-  ERROR_REGISTER_DATA_INVALID,
   ERROR_WORKER_NOT_FOUND,
 };
