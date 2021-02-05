@@ -1,1 +1,2 @@
-require('./materi/nats');
+// require('./materi/nats');
+require('./tugas/main');
